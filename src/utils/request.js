@@ -1,11 +1,20 @@
 import axios from 'axios'
+import store from '@/store'
 const request = axios.create({
-  baseURL: 'http://toutiao.course.itcast.cn'
+  // 线下
+  // baseURL: 'http://toutiao.course.itcast.cn'
+  // 线上接口
+  baseURL: 'http://ttapi.research.itcast.cn/'
 })
 
 // 配置请求拦截器
 request.interceptors.request.use(function (config) {
-  // Do something before request is sent
+  // 判断 是否否登录 ，如果登录 设置请求头 token
+  const { user } = store.state
+  if (user) {
+    // console.log(user.token)
+    config.headers.Authorization = `Bearer ${user.token}`
+  }
   return config
 }, function (error) {
   // Do something with request error

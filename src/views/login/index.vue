@@ -10,16 +10,19 @@
     clearable
     label="手机号:"
     placeholder="请输入手机号"
-    :error-message="errors.mobile"
+    v-validate="'required'"
+    name="mobile"
+    :error-message="errors.first('mobile')"
   />
 
   <van-field
     v-model="user.code"
     type="password"
-    label="验证码:"
-    placeholder="请输入验证码"
-    :error-message="errors.code"
-    required
+    label="密码:"
+    placeholder="请输入密码"
+    v-validate="'required'"
+    name="code"
+    :error-message="errors.first('code')"
   />
 </van-cell-group>
 <div class = 'login-btn-box'>
@@ -37,7 +40,7 @@ export default {
         mobile: '',
         code: ''
       },
-      errors: {
+      myErrors: {
         mobile: '',
         code: ''
       },
@@ -45,23 +48,14 @@ export default {
       loginLoading: false
     }
   },
+  created () {
+    this.configFormErrorMessages()
+  },
   methods: {
     async handleLogin () {
       try {
-        const { mobile, code } = this.user
-        const errors = this.errors
-        // 验证 手机号不为空
-        if (mobile.length) {
-          errors.mobile = ''
-        } else {
-          errors.mobile = '手机号不能空'
-          return
-        }
-        // 验证验证码 不为空
-        if (code.length) {
-          errors.code = ''
-        } else {
-          errors.code = '验证码不能为空'
+        const valid = await this.$validator.validate()
+        if (!valid) {
           return
         }
 
@@ -70,10 +64,32 @@ export default {
         this.$router.push('/')
         this.$store.commit('setItem', data)
       } catch (err) {
+        this.$toast.fail('登录失败')
         console.log(err)
       }
       this.loginLoading = false
+    },
+    // 配置 错误提示
+    configFormErrorMessages () {
+      const dict = {
+        custom: {
+          mobile: {
+            required: '手机号不能为空'
+          },
+          code: {
+            required: '密码不能为空'
+          }
+        }
+      }
+
+      // 如果需要错误消息提示全局生效
+      // Validator.localize('en', dict);
+
+      // 组件中这也注册生效
+      // or use the instance method
+      this.$validator.localize('zh_CN', dict)
     }
+
   }
 }
 </script>
